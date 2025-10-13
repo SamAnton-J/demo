@@ -1,0 +1,16 @@
+# requirements.txt
+fastapi
+uvicorn
+celery
+redis
+qdrant-client
+sentence-transformers
+PyMuPDF
+requests
+
+# Updated for Mistral v0.3 and function calling
+pydantic
+transformers>=4.42.0
+torch
+accelerate
+sentencepiece  

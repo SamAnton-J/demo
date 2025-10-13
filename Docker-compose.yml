@@ -1,0 +1,49 @@
+# docker-compose.yml
+services:
+  # Service 1: The FastAPI API
+  api:
+    build: .
+    # The command now runs from the /code directory
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      # We mount the local app folder to the app folder inside the container
+      - ./app:/code/app
+    environment:
+      # No longer need PYTHONPATH because the command is run from the parent dir
+      - REDIS_URL=redis://redis:6379/0
+      - QDRANT_HOST=qdrant
+      - HUGGING_FACE_TOKEN=
+    depends_on:
+      - redis
+      - qdrant
+    platform: linux/amd64
+
+  # Service 2: The Celery Background Worker
+  worker:
+    build: .
+    # The command now runs from the /code directory
+    command: celery -A app.celery_worker.celery_app worker --loglevel=info
+    volumes:
+      - ./app:/code/app
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - QDRANT_HOST=qdrant
+      - HUGGING_FACE_TOKEN=
+    depends_on:
+      - redis
+      - qdrant
+    platform: linux/amd64
+
+  # Service 3: Redis
+  redis:
+    image: "redis:7-alpine"
+    platform: linux/amd64
+
+  # Service 4: Qdrant
+  qdrant:
+    image: "qdrant/qdrant:latest"
+    ports:
+      - "6333:6333"
+    platform: linux/amd64
